@@ -1,0 +1,36 @@
+# =============================================================================
+# DEVELOPMENT DOCKERFILE - Next.js dev server with hot reload
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: deps - Install all dependencies (including devDependencies)
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --frozen-lockfile
+
+# -----------------------------------------------------------------------------
+# Stage 2: dev - Hot-reloading development server (source is bind-mounted)
+# -----------------------------------------------------------------------------
+FROM deps AS dev
+
+LABEL org.opencontainers.image.description="MBA Interview Prep Frontend - Development"
+LABEL org.opencontainers.image.licenses=MIT
+
+WORKDIR /app
+
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY . .
+
+EXPOSE 3000
+
+# Bind to 0.0.0.0 so the dev server is reachable from outside the container.
+CMD ["pnpm", "exec", "next", "dev", "-H", "0.0.0.0", "-p", "3000"]

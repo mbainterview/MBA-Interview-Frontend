@@ -1,0 +1,33 @@
+# MBA Interview Prep Frontend — production Docker Compose
+#
+# Standalone frontend. It talks to the backend over the public API URL
+# (NEXT_PUBLIC_API_BASE_URL), so there is no DB/redis/backend dependency here.
+#
+# NEXT_PUBLIC_* are baked into the client bundle at BUILD time, so they are
+# passed as build args. Provide them via a `docker/.env` file (see .env.example)
+# or your shell environment before running `docker compose build`.
+services:
+  web:
+    container_name: mba_frontend
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: run
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+    ports:
+      - 3000:3000
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

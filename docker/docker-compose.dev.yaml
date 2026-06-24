@@ -1,0 +1,43 @@
+# MBA Interview Prep Frontend — development Docker Compose
+#
+# Hot-reloading Next.js dev server. Source is bind-mounted from the host, so
+# edits on the host are picked up live. node_modules and .next are kept inside
+# the container (anonymous volumes) so the host OS / arch doesn't clobber them.
+#
+# NEXT_PUBLIC_* are read at runtime by `next dev`, so they come from .env.local.
+services:
+  web:
+    container_name: mba_frontend_dev
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: dev
+    env_file:
+      - ../.env.local
+    ports:
+      - 3000:3000
+    volumes:
+      - ../src:/app/src
+      - ../public:/app/public
+      - ../next.config.ts:/app/next.config.ts
+      - ../tsconfig.json:/app/tsconfig.json
+      - ../components.json:/app/components.json
+      - ../postcss.config.mjs:/app/postcss.config.mjs
+      - ../eslint.config.mjs:/app/eslint.config.mjs
+      - ../package.json:/app/package.json
+      - ../pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Keep container-built deps and build cache out of the host mounts.
+      - /app/node_modules
+      - /app/.next
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ../src
+          target: /app/src
+        - action: rebuild
+          path: ../package.json
+        - action: rebuild
+          path: ../pnpm-lock.yaml

@@ -13,7 +13,10 @@ RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile
+# --ignore-scripts: skip all dependency build scripts. pnpm 10+ otherwise hard-fails
+# (ERR_PNPM_IGNORED_BUILDS) on unapproved scripts. None are needed for the production
+# build: sharp's binary ships as a prebuilt package, and puppeteer/msw are dev/test only.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # -----------------------------------------------------------------------------
 # Stage 2: build - Compile the Next.js app to a standalone server bundle

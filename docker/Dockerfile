@@ -28,8 +28,11 @@ WORKDIR /app
 # NEXT_PUBLIC_* values are inlined into the client bundle at BUILD time, so they
 # must be present here (passed via docker-compose build args). They are public
 # by design (browser-exposed), not secrets.
-ARG NEXT_PUBLIC_API_BASE_URL
-ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+# Defaults bake in the production values so the build still produces correct
+# URLs even if the platform (Dokploy) doesn't forward env vars as --build-arg.
+# A real --build-arg still overrides these. NEXT_PUBLIC_* are browser-exposed, not secrets.
+ARG NEXT_PUBLIC_API_BASE_URL=https://api.mbainterview.ai/api/v1
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51SHryFDrLHrlZCDDCjXaBSjROXSmVyJLUcdCww9qpVvSsMvlEjpWUkR0jetkZUTgGgQ9wmGEUGbEb9hQEGKQYD4x00gACI33eb
 
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY

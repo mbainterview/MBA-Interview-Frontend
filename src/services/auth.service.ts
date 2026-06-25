@@ -59,6 +59,11 @@ export interface ChangeEmailData {
   callbackURL?: string;
 }
 
+export interface UpdateMePayload {
+  firstName?: string;
+  lastName?: string;
+}
+
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
 export const authKeys = {
@@ -101,6 +106,9 @@ export const authApi = {
 
   getMe: () =>
     apiClient.get<UserMe>("/auth/me").then((res) => res.data),
+
+  updateMe: (data: UpdateMePayload) =>
+    apiClient.patch<UserMe>("/users/me", data).then((res) => res.data),
 
   logout: () =>
     apiClient
@@ -191,6 +199,21 @@ export function useLogout() {
           /* ignore */
         }
       }
+    },
+  });
+}
+
+export function useUpdateMe() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.updateMe,
+    onSuccess: (_data, variables) => {
+      // Optimistically patch the cached /auth/me so the topbar name/initials
+      // update immediately, then revalidate against the server.
+      queryClient.setQueryData<UserMe>(authKeys.me(), (prev) =>
+        prev ? { ...prev, ...variables } : prev,
+      );
+      queryClient.invalidateQueries({ queryKey: authKeys.me() });
     },
   });
 }

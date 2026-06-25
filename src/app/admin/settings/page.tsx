@@ -1,25 +1,69 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import { toast } from "sonner";
 import { PageIntro } from "@/components/admin/page-intro";
 import { WidgetCard } from "@/components/admin/widget-card";
 import { AdminTabs } from "@/components/admin/admin-tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/providers/auth-provider";
+import { useUpdateMe } from "@/services/auth.service";
 
 function ProfileTab() {
+  const { user } = useAuth();
+  const updateMe = useUpdateMe();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  // Sync the form once the authenticated user resolves.
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName ?? "");
+      setLastName(user.lastName ?? "");
+    }
+  }, [user]);
+
+  const avatarInitial = (user?.firstName?.[0] ?? "A").toUpperCase();
+  const roleLabel = user?.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
+    : "";
+
+  const isDirty =
+    firstName.trim() !== (user?.firstName ?? "") ||
+    lastName.trim() !== (user?.lastName ?? "");
+
+  const handleCancel = () => {
+    setFirstName(user?.firstName ?? "");
+    setLastName(user?.lastName ?? "");
+  };
+
+  const handleSave = () => {
+    updateMe.mutate(
+      { firstName: firstName.trim(), lastName: lastName.trim() },
+      {
+        onSuccess: () => toast.success("Profile updated successfully"),
+        onError: (error) =>
+          toast.error(
+            error instanceof Error ? error.message : "Failed to update profile",
+          ),
+      },
+    );
+  };
+
   return (
     <WidgetCard title="Profile Information" icon="material-symbols:person-rounded">
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-6">
           <div className="grid size-24 place-items-center rounded-full bg-gradient-to-br from-[#5450d8] to-[#7a76e3] font-heading text-[36px] font-semibold text-white">
-            M
+            {avatarInitial}
           </div>
           <div className="flex flex-col gap-2">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" disabled>
               <Icon icon="material-symbols:upload-rounded" width={18} height={18} />
               Change avatar
             </Button>
@@ -31,28 +75,43 @@ function ProfileTab() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="firstName">First name</Label>
-            <Input id="firstName" defaultValue="Musfiq" />
+            <Input
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="lastName">Last name</Label>
-            <Input id="lastName" defaultValue="Rahman" />
+            <Input
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" defaultValue="musfiq@mba.ai" />
+            <Input id="email" type="email" value={user?.email ?? ""} disabled />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="role">Role</Label>
-            <Input id="role" defaultValue="Admin" disabled />
-          </div>
-          <div className="grid gap-2 md:col-span-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea id="bio" rows={3} placeholder="Tell us about yourself" />
+            <Input id="role" value={roleLabel} disabled />
           </div>
         </div>
         <div className="flex justify-end gap-3">
-          <Button variant="outline">Cancel</Button>
-          <Button>Save changes</Button>
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={!isDirty || updateMe.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!isDirty || !firstName.trim() || updateMe.isPending}
+          >
+            {updateMe.isPending ? "Saving..." : "Save changes"}
+          </Button>
         </div>
       </div>
     </WidgetCard>

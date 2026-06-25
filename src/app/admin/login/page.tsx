@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
   }, [isAuthenticated, user, router]);
 
   const form = useForm({
-    defaultValues: { email: "admin@mbaprep.com", password: "12345678" },
+    defaultValues: { email: "", password: "" },
     onSubmit: async ({ value }) => {
       signIn(value, {
         onSuccess: async (data) => {

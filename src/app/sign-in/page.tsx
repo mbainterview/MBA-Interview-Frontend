@@ -54,7 +54,7 @@ export default function SignInPage() {
   const { mutate: signIn, isPending } = useSignIn();
 
   const form = useForm({
-    defaultValues: { email: "sarah@test.com", password: "Test@1234" },
+    defaultValues: { email: "", password: "" },
     onSubmit: async ({ value }) => {
       signIn(value, {
         onSuccess: async (data) => {

@@ -11,7 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/providers/auth-provider";
-import { useUpdateMe } from "@/services/auth.service";
+import { useUpdateMe, useChangePassword } from "@/services/auth.service";
+import {
+  useNotificationPrefs,
+  useUpdateNotificationPrefs,
+} from "@/services/settings.service";
+import type { NotificationPreferences } from "@/types/domain";
 
 function ProfileTab() {
   const { user } = useAuth();
@@ -119,63 +124,161 @@ function ProfileTab() {
 }
 
 function PasswordTab() {
+  const changePassword = useChangePassword();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+
+  const mismatch = confirm.length > 0 && next !== confirm;
+  const isValid =
+    current.length >= 8 && next.length >= 8 && next === confirm;
+
+  const reset = () => {
+    setCurrent("");
+    setNext("");
+    setConfirm("");
+  };
+
+  const handleUpdate = () => {
+    changePassword.mutate(
+      { currentPassword: current, newPassword: next },
+      {
+        onSuccess: () => {
+          toast.success("Password updated successfully");
+          reset();
+        },
+        onError: (error) =>
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to update password",
+          ),
+      },
+    );
+  };
+
   return (
     <WidgetCard title="Change Password" icon="material-symbols:lock-rounded">
       <div className="flex max-w-xl flex-col gap-4">
         <div className="grid gap-2">
           <Label htmlFor="current">Current password</Label>
-          <Input id="current" type="password" />
+          <Input
+            id="current"
+            type="password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+          />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="new">New password</Label>
-          <Input id="new" type="password" />
+          <Input
+            id="new"
+            type="password"
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+          />
+          <p className="font-body text-[12px] text-[#868686]">
+            Must be at least 8 characters.
+          </p>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="confirm">Confirm new password</Label>
-          <Input id="confirm" type="password" />
+          <Input
+            id="confirm"
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+          {mismatch && (
+            <p className="font-body text-[12px] text-[#fc5a33]">
+              Passwords do not match.
+            </p>
+          )}
         </div>
         <div className="flex justify-end gap-3">
-          <Button variant="outline">Cancel</Button>
-          <Button>Update password</Button>
+          <Button
+            variant="outline"
+            onClick={reset}
+            disabled={
+              changePassword.isPending ||
+              (!current && !next && !confirm)
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            disabled={!isValid || changePassword.isPending}
+          >
+            {changePassword.isPending ? "Updating..." : "Update password"}
+          </Button>
         </div>
       </div>
     </WidgetCard>
   );
 }
 
+const NOTIFICATION_PREFS: Array<{
+  key: keyof NotificationPreferences;
+  title: string;
+  detail: string;
+}> = [
+  { key: "emailEnabled",     title: "Email notifications", detail: "Receive notifications by email" },
+  { key: "pushEnabled",      title: "Push notifications",  detail: "Receive in-app push notifications" },
+  { key: "sessionReminders", title: "Session reminders",   detail: "Reminders for upcoming interview sessions" },
+  { key: "feedbackAlerts",   title: "Feedback alerts",     detail: "Notify when AI feedback is ready" },
+  { key: "paymentAlerts",    title: "Payment alerts",      detail: "Successful payments and failed attempts" },
+  { key: "marketingEmails",  title: "Marketing emails",    detail: "Product news and occasional offers" },
+];
+
 function NotificationsTab() {
-  const PREFS = [
-    { key: "newUser",   title: "New user signups",        detail: "Get notified when a new user registers" },
-    { key: "payments",  title: "Payment events",          detail: "Successful payments and failed attempts" },
-    { key: "ai",        title: "AI cost alerts",          detail: "When daily/weekly AI cost exceeds threshold" },
-    { key: "weekly",    title: "Weekly platform digest",  detail: "Summary of activity across the platform" },
-  ];
+  const { data: prefs, isLoading } = useNotificationPrefs();
+  const updatePrefs = useUpdateNotificationPrefs();
+
+  const handleToggle = (key: keyof NotificationPreferences, value: boolean) => {
+    const payload: Partial<NotificationPreferences> = { [key]: value };
+    updatePrefs.mutate(payload, {
+      onError: (error) =>
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to update preferences",
+        ),
+    });
+  };
 
   return (
-    <WidgetCard
-      title="Notification Preferences"
-      icon="famicons:notifications"
-    >
-      <div className="flex flex-col gap-1">
-        {PREFS.map((p, i) => (
-          <div key={p.key} className="flex flex-col">
-            <div className="flex items-center justify-between py-4">
-              <div className="flex flex-col">
-                <p className="font-heading text-[16px] font-semibold text-[#272727]">
-                  {p.title}
-                </p>
-                <p className="font-body text-[14px] text-[#868686]">
-                  {p.detail}
-                </p>
+    <WidgetCard title="Notification Preferences" icon="famicons:notifications">
+      {isLoading ? (
+        <p className="py-4 font-body text-[14px] text-[#868686]">
+          Loading preferences…
+        </p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          {NOTIFICATION_PREFS.map((p, i) => (
+            <div key={p.key} className="flex flex-col">
+              <div className="flex items-center justify-between py-4">
+                <div className="flex flex-col">
+                  <p className="font-heading text-[16px] font-semibold text-[#272727]">
+                    {p.title}
+                  </p>
+                  <p className="font-body text-[14px] text-[#868686]">
+                    {p.detail}
+                  </p>
+                </div>
+                <Switch
+                  checked={prefs?.[p.key] ?? false}
+                  disabled={updatePrefs.isPending}
+                  onCheckedChange={(value) => handleToggle(p.key, value)}
+                />
               </div>
-              <Switch defaultChecked={i < 2} />
+              {i < NOTIFICATION_PREFS.length - 1 && (
+                <div className="h-px w-full bg-[#f0f0f5]" />
+              )}
             </div>
-            {i < PREFS.length - 1 && (
-              <div className="h-px w-full bg-[#f0f0f5]" />
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </WidgetCard>
   );
 }

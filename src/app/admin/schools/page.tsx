@@ -366,7 +366,14 @@ export default function SchoolsPage() {
 
   const queryClient = useQueryClient();
 
-  const { data: schoolsData, isLoading: schoolsLoading } = useSchools();
+  // Show every school on one page, ordered by seed/created order (ASC) so the
+  // featured M7 programs (HBS, Wharton, Stanford, Columbia…) lead the list.
+  // The API default is created_at DESC + limit 20, which buried them on page 2.
+  const { data: schoolsData, isLoading: schoolsLoading } = useSchools({
+    limit: 100,
+    sort: "created_at",
+    order: "ASC",
+  });
   const { data: overview, isLoading: overviewLoading } = useAdminOverview();
   const createSchool = useCreateSchool();
   const deactivateSchool = useDeactivateSchool();

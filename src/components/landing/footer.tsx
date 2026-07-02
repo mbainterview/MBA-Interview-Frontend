@@ -1,21 +1,17 @@
 import Link from "next/link";
 
+// Only links that resolve to a real page are listed. Dead placeholders
+// (Interview Tips, Help Center, Contact, About Us) and the not-yet-built
+// Terms/Privacy/Cookies pages were removed; Pricing is hidden for the beta.
 const footerLinks = {
   Product: [
     { label: "How it Works", href: "/how-it-works" },
     { label: "Schools", href: "/schools" },
     { label: "Kira Prep", href: "/kira-prep" },
-    { label: "Pricing", href: "/pricing" },
     { label: "Features", href: "/#features" },
   ],
   Resources: [
-    { label: "Interview Tips", href: "#" },
     { label: "MBA Resources", href: "/resources" },
-    { label: "Help Center", href: "#" },
-  ],
-  Company: [
-    { label: "Contact", href: "#" },
-    { label: "About Us", href: "#" },
   ],
 };
 
@@ -66,11 +62,6 @@ export function Footer() {
         <hr style={{ borderColor: "rgba(255,255,255,0.2)", marginBottom: "24px" }} />
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "12px", color: "#ffffff" }}>© 2026 MBA Interview Prep Simulator. All rights reserved.</p>
-          <div className="flex gap-12.5 items-center">
-            {[{ label: "Terms", href: "/terms" }, { label: "Privacy", href: "/privacy" }, { label: "Cookies", href: "/cookies" }].map((l) => (
-              <Link key={l.label} href={l.href} className="transition-opacity hover:opacity-80" style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "14px", color: "#ffffff" }}>{l.label}</Link>
-            ))}
-          </div>
         </div>
       </div>
     </footer>

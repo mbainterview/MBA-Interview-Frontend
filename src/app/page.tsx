@@ -5,7 +5,6 @@ import { FeaturesSection } from "@/components/landing/features-section";
 import { SchoolsSection } from "@/components/landing/schools-section";
 import { FeedbackSection } from "@/components/landing/feedback-section";
 import { KiraSection } from "@/components/landing/kira-section";
-import { PricingSection } from "@/components/landing/pricing-section";
 import { MobileSection } from "@/components/landing/mobile-section";
 import { Footer } from "@/components/landing/footer";
 
@@ -20,7 +19,7 @@ export default function HomePage() {
         <SchoolsSection />
         <FeedbackSection />
         <KiraSection />
-        <PricingSection />
+        {/* Pricing hidden for beta — re-add <PricingSection /> when pricing goes live. */}
         <MobileSection />
       </main>
       <Footer />

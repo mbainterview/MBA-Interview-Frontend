@@ -1,7 +1,7 @@
 /**
  * Canonical school list. Order, names, and logos match the Figma "/schools"
- * design (node 808:2211) exactly: 29 programs, starting with the M7-style
- * featured set and ending with international programs.
+ * design (node 808:2211): 28 programs, starting with the M7-style featured
+ * set and ending with international programs.
  *
  * Logos are exported from Figma into `/public/school-logos/figma-school-*.png`.
  * The ESADE entry uses a pre-composed orange disc with its navy wordmark; the
@@ -44,11 +44,10 @@ export const CANONICAL_SCHOOLS: CanonicalSchool[] = [
   { name: "Kenan-Flagler Business School",            abbreviation: "Kenan-Flagler", logo: "/school-logos/figma-school-kenan-flagler.png" },
   { name: "Goizueta Business School",                 abbreviation: "Goizueta",      logo: "/school-logos/figma-school-goizueta.png" },
   { name: "Marshall School of Business",              abbreviation: "Marshall",      logo: "/school-logos/figma-school-marshall.png" },
-  { name: "Olin Business School",                     abbreviation: "Olin",          logo: "/school-logos/figma-school-olin.png" },
   { name: "Rice Jones Graduate School of Business",   abbreviation: "Rice",          logo: "/school-logos/figma-school-rice-jones.png" },
   { name: "London Business School",                   abbreviation: "LBS",           logo: "/school-logos/figma-school-london.png" },
   { name: "IESE Business School",                     abbreviation: "IESE",          logo: "/school-logos/figma-school-iese.png" },
-  { name: "INSEAD McDonough School of Business",      abbreviation: "INSEAD",        logo: "/school-logos/figma-school-insead-mcdonough.png" },
+  { name: "INSEAD",                                   abbreviation: "INSEAD",        logo: "/school-logos/figma-school-insead-mcdonough.png" },
   { name: "ESADE Business School",                    abbreviation: "ESADE",         logo: "/school-logos/figma-school-esade.png", bgColor: "#fc5a33" },
 ];
 
@@ -113,9 +112,6 @@ const ABBREV_ALIASES: Record<string, string> = {
   GEORGETOWN: "McDonough",
   OWEN: "Owen",
   VANDERBILT: "Owen",
-  OLIN: "Olin",
-  "WASHINGTON UNIVERSITY": "Olin",
-  WUSTL: "Olin",
   // International / additional Figma entries
   RICE: "Rice",
   JONES: "Rice",

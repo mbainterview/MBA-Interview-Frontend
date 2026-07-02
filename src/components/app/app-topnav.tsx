@@ -8,7 +8,6 @@ import {
   Video,
   BarChart3,
   History,
-  CreditCard,
   Settings,
   Search,
   LogOut,
@@ -30,7 +29,7 @@ const NAV: NavItem[] = [
   { label: "Kira Interview", href: "/kira", icon: Video },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "History", href: "/history", icon: History },
-  { label: "Pricing", href: "/billing", icon: CreditCard },
+  // Pricing/billing hidden for beta — restore { label: "Pricing", href: "/billing", icon: CreditCard } when pricing goes live.
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 

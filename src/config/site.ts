@@ -7,7 +7,7 @@ export const siteConfig = {
     { label: "How it Works", href: "/how-it-works" },
     { label: "Schools", href: "/schools" },
     { label: "Kira Prep", href: "/kira-prep" },
-    { label: "Pricing", href: "/pricing" },
+    // Pricing hidden for beta — restore { label: "Pricing", href: "/pricing" } when pricing goes live.
     { label: "Resources", href: "/resources" },
   ],
 } as const;

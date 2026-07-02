@@ -175,7 +175,12 @@ export function useMicrophone(options: UseMicrophoneOptions = {}): UseMicrophone
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
 
-    chunksRef.current = [];
+    // Fully tear down any previous recorder before starting a new one so its
+    // trailing flush can't bleed into this recording.
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      try { recorderRef.current.stop(); } catch { /* ignore */ }
+    }
+
     setRecordedFile(null);
     setElapsed(0);
 
@@ -187,12 +192,20 @@ export function useMicrophone(options: UseMicrophoneOptions = {}): UseMicrophone
     const cleanMime = selectedMime.split(";")[0] || selectedMime;
     const recorder = new MediaRecorder(streamRef.current, { mimeType: selectedMime });
 
+    // Bind chunks to THIS recorder via a closure-local array. The final
+    // `ondataavailable` from a stopped recorder fires asynchronously and could
+    // otherwise land at index 0 of the next recording's buffer (see
+    // use-camera.ts) — corrupting the container header. Per-recorder arrays
+    // keep each recording's bytes self-contained.
+    const chunks: Blob[] = [];
+    chunksRef.current = chunks;
+
     recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
+      if (e.data.size > 0) chunks.push(e.data);
     };
 
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: cleanMime });
+      const blob = new Blob(chunks, { type: cleanMime });
       const ext = cleanMime.includes("mp4")
         ? "mp4"
         : cleanMime.includes("ogg")

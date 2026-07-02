@@ -119,7 +119,12 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
 
-    chunksRef.current = [];
+    // Make sure any previous recorder is fully torn down before we spin up a
+    // new one, so its trailing flush can't interfere with this recording.
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      try { recorderRef.current.stop(); } catch { /* ignore */ }
+    }
+
     setRecordedFile(null);
     setElapsed(0);
 
@@ -135,12 +140,24 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
     // fail on an otherwise-valid WebM body.
     const cleanMime = selectedMime.split(";")[0] || selectedMime;
 
+    // Bind the chunk buffer to THIS recorder via a closure-local array. When a
+    // recorder is stopped, the browser fires one last `ondataavailable` (the
+    // encoder flush) asynchronously — which can arrive after the next question
+    // has already started recording. Pushing to `chunksRef.current` (read at
+    // push time) let that trailing, header-less chunk land at index 0 of the
+    // next recording's buffer, so its blob no longer began with the WebM EBML
+    // header and the server's magic-byte check rejected it ("Invalid file
+    // format — expected WebM or MP4 video"). Writing to a per-recorder array
+    // makes each recording's bytes self-contained.
+    const chunks: Blob[] = [];
+    chunksRef.current = chunks;
+
     recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
+      if (e.data.size > 0) chunks.push(e.data);
     };
 
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: cleanMime });
+      const blob = new Blob(chunks, { type: cleanMime });
       const ext = cleanMime.includes("mp4") ? "mp4" : "webm";
       const file = new File([blob], `recording.${ext}`, { type: cleanMime });
       setRecordedFile(file);

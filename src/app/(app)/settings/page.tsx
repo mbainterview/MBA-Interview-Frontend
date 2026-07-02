@@ -16,6 +16,13 @@ import { toast } from "sonner";
 const sora = "var(--font-sora), sans-serif";
 const inter = "var(--font-inter), sans-serif";
 
+// Mirror the backend's IsStrongPassword rule (strong-password.validator.ts) so
+// the form only enables submit for passwords the API will actually accept —
+// otherwise a length-only-valid password looks acceptable here but is rejected
+// server-side with a 422, making it seem like the password can't be changed.
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
+
 const fieldStyle: React.CSSProperties = {
   height: "48px",
   borderRadius: "10px",
@@ -76,10 +83,13 @@ export default function SettingsPage() {
     next: "",
     confirm: "",
   });
-  const passwordValid =
-    passwords.current.length >= 8 &&
+  const newPasswordStrong =
     passwords.next.length >= 8 &&
-    passwords.next === passwords.confirm;
+    passwords.next.length <= 72 &&
+    STRONG_PASSWORD_REGEX.test(passwords.next);
+  const passwordsMatch = passwords.next === passwords.confirm;
+  const passwordValid =
+    passwords.current.length >= 8 && newPasswordStrong && passwordsMatch;
 
   // Notification toggles
   const emailNotifs = notifPrefs?.emailEnabled ?? false;
@@ -294,6 +304,22 @@ export default function SettingsPage() {
                 className="focus:border-[#5450d8] focus:outline-none"
                 style={fieldStyle}
               />
+              <span
+                style={{
+                  fontFamily: inter,
+                  fontSize: "11px",
+                  lineHeight: 1.4,
+                  color:
+                    passwords.next.length === 0
+                      ? "#9ea1c5"
+                      : newPasswordStrong
+                        ? "#22c55e"
+                        : "#ef4444",
+                }}
+              >
+                At least 8 characters, including an uppercase letter, a
+                lowercase letter, a number, and a special character.
+              </span>
             </Field>
             <Field label="Confirm Password">
               <input
@@ -305,6 +331,17 @@ export default function SettingsPage() {
                 className="focus:border-[#5450d8] focus:outline-none"
                 style={fieldStyle}
               />
+              {passwords.confirm.length > 0 && !passwordsMatch && (
+                <span
+                  style={{
+                    fontFamily: inter,
+                    fontSize: "11px",
+                    color: "#ef4444",
+                  }}
+                >
+                  Passwords do not match.
+                </span>
+              )}
             </Field>
           </div>
 

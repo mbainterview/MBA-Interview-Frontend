@@ -20,13 +20,21 @@ export default function HistoryPage() {
 
   const { data, isLoading } = useAnalyticsHistory({ page, limit });
 
-  const rows = (data?.items ?? []).map((item) => ({
-    id: item.sessionId,
-    date: new Date(item.createdAt).toLocaleDateString(),
-    school: item.schoolName ?? "General",
-    score: item.overallScore,
-    sessionId: item.sessionId,
-  }));
+  const rows = (data?.items ?? []).map((item) => {
+    const isKira = item.type === "kira";
+    return {
+      id: item.sessionId,
+      date: new Date(item.createdAt).toLocaleDateString(),
+      school: item.schoolName ?? "General",
+      score: item.overallScore,
+      sessionId: item.sessionId,
+      isKira,
+      typeLabel: isKira ? "Kira Essay" : "School-Specific",
+      feedbackHref: isKira
+        ? `/kira/results?sessionId=${item.sessionId}`
+        : `/mock-interview/results?sessionId=${item.sessionId}`,
+    };
+  });
 
   const totalPages = data?.totalPages ?? 1;
 
@@ -112,14 +120,14 @@ export default function HistoryPage() {
                     <span
                       className="inline-flex rounded-full px-3 py-1"
                       style={{
-                        background: "#edecfd",
-                        color: "#5450d8",
+                        background: row.isKira ? "#e6f9f0" : "#edecfd",
+                        color: row.isKira ? "#0f9d58" : "#5450d8",
                         fontFamily: inter,
                         fontSize: "12px",
                         fontWeight: 600,
                       }}
                     >
-                      School-Specific
+                      {row.typeLabel}
                     </span>
                   </Td>
                   <Td>{row.school}</Td>
@@ -152,7 +160,7 @@ export default function HistoryPage() {
                   </Td>
                   <Td>
                     <Link
-                      href={`/mock-interview/results?sessionId=${row.sessionId}`}
+                      href={row.feedbackHref}
                       className="inline-flex items-center gap-1.5 rounded-[10px] border transition-colors hover:bg-[#f5f4ff]"
                       style={{
                         borderColor: "#5450d8",

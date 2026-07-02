@@ -89,9 +89,13 @@ export default function DashboardPage() {
 
   const recentInterviews = (historyData?.items ?? []).map((item) => ({
     id: item.sessionId,
-    title: item.schoolName ?? "General",
+    title: item.schoolName ?? (item.type === "kira" ? "Kira Essay" : "General"),
     date: new Date(item.createdAt).toLocaleDateString(),
     score: item.overallScore ?? 0,
+    href:
+      item.type === "kira"
+        ? `/kira/results?sessionId=${item.sessionId}`
+        : `/mock-interview/results?sessionId=${item.sessionId}`,
   }));
 
   // Match the Figma's four-bucket gauge set in fixed order so the dashboard
@@ -291,7 +295,7 @@ export default function DashboardPage() {
                       {row.score}%
                     </span>
                     <Link
-                      href={`/mock-interview/results?sessionId=${row.id}`}
+                      href={row.href}
                       className="rounded-[10px] border transition-colors hover:bg-[#f5f4ff]"
                       style={{
                         borderColor: "#5450d8",

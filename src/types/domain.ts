@@ -485,6 +485,9 @@ export interface HistoryItem {
   overallScore: number | null;
   createdAt: string;
   completedAt: string | null;
+  // Which product the session belongs to. Defaults to "interview" for older
+  // rows served by a backend that predates the unified history.
+  type?: "interview" | "kira";
 }
 
 export interface HistoryResponse {
